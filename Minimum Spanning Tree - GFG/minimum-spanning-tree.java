@@ -32,42 +32,62 @@ public class Main{
 
 
 // User function Template for Java
-class pair{
-    int i;
-    int val;
-    pair(int i,int val){
-        this.i=i;
-        this.val=val;
+class Edges{
+    int src,dest,wt;
+    Edges(int src,int dest,int wt){
+        this.src=src;
+        this.dest=dest;
+        this.wt=wt;
+    }
+}
+class disjointset{
+    List<Integer> parent=new ArrayList<>();
+    List<Integer> size=new ArrayList<>();
+    public disjointset(int n){
+        for(int i=0;i<n;i++){
+            parent.add(i);
+            size.add(1);
+        }
+    }
+    public int findparent(int node){
+        if(parent.get(node)==node)return node;
+        parent.set(node,findparent(parent.get(node)));
+        return parent.get(node);
+    }
+    public void disjointbysize(int src,int dest){
+        int u=findparent(src);
+        int v=findparent(dest);
+        if(u==v)return;
+        if(size.get(u)<size.get(v)){
+            parent.set(u,v);
+            size.set(size.get(u),size.get(u)+size.get(v));
+        }
+        else{
+            parent.set(v,u);
+            size.set(size.get(v),size.get(u)+size.get(v));
+        }
     }
 }
 class Solution{
 	static int spanningTree(int V, int E, int edges[][]){
-	    List<List<pair>> ls=new ArrayList<>();
-	    for(int i=0;i<V;i++){
-	        ls.add(new ArrayList<>());
-	    }
+	    Queue<Edges> pq=new PriorityQueue<>((a,b)->a.wt-b.wt);
 	    for(int i=0;i<edges.length;i++){
-	        ls.get(edges[i][0]).add(new pair(edges[i][1],edges[i][2]));
-	        ls.get(edges[i][1]).add(new pair(edges[i][0],edges[i][2]));
+	        pq.add(new Edges(edges[i][0],edges[i][1],edges[i][2]));
 	    }
-	    Queue<pair> q=new PriorityQueue<>((a,b)->a.val-b.val);int s=0;
-	    q.add(new pair(0,0));
-	    int vis[]=new int[V];
-	    Arrays.fill(vis,0);
-	    while(!q.isEmpty()){
-	        int node=q.peek().i;
-	        int wt=q.peek().val;
-	        q.remove();
-	        if(vis[node]==1)continue;
-	        vis[node]=1;
-	        s+=wt;
-	        for(int j=0;j<ls.get(node).size();j++){
-	            if(vis[ls.get(node).get(j).i]!=1){
-	                q.add(new pair(ls.get(node).get(j).i,ls.get(node).get(j).val));
-	            }
+	    int sum=0;
+	    disjointset ds=new disjointset(V);
+	    while(!pq.isEmpty()){
+	        int s=pq.peek().src;
+	        int d=pq.peek().dest;
+	        int w=pq.peek().wt;
+	        pq.remove();
+	        
+	        if(ds.findparent(s)!=ds.findparent(d)){
+	            ds.disjointbysize(s,d);
+	            sum+=w;
 	        }
 	        
 	    }
-	    return s;
+	    return sum;
 	}
 }
